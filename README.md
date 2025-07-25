@@ -35,7 +35,7 @@
 </p>
 
 <p align="center">
-  <img src="https://github-readme-activity-graph.cyclic.app/graph?username=krishnaqwerty&theme=rogue" alt="Activity Graph" />
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=krishnaqwerty&theme=rogue" alt="GitHub Activity Graph" />
 </p>
 
 ---
