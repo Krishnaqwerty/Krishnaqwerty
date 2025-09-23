@@ -109,8 +109,8 @@ export default function HomePage() {
         </div>
       </ScenePath>
       {/* No separate morph component needed */}
-      {/* About pill docks at bottom and stays visible till end of scroll */}
-      <SceneItem start={30} end={184} xPct={50} yPct={92} anchor="center">
+      {/* About appears when heading reaches top (frame 50) and persists at bottom-center */}
+      <SceneItem start={50} end={10000} x={"50%"} yPct={100} vhUnit="dvh" anchor="bottom-center" className="z-30 w-full max-w-3xl">
         <AboutSection />
       </SceneItem>
       {/* Projects rotating palette: keep visible from heading-top to end */}

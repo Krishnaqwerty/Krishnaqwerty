@@ -17,28 +17,36 @@ export function SceneItem({
   y,
   xPct,
   yPct,
-  anchor = "top-left", // 'top-left' | 'center' | 'top-center'
+  anchor = "top-left", // 'top-left' | 'center' | 'top-center' | 'bottom-center'
+  vhUnit = "vh", // allow 'dvh' to avoid mobile URL-bar issues
   className = "",
   children,
 }) {
   const { currentFrame } = useFrame();
   const visible = currentFrame >= start && currentFrame <= end;
+  const isBottomCenter = anchor === "bottom-center";
   const style = {
-    left: xPct != null ? `${xPct}vw` : x != null ? x : 0,
-    top: yPct != null ? `${yPct}vh` : y != null ? y : 0,
+    ...(isBottomCenter
+      ? { left: 0, right: 0 }
+      : { left: xPct != null ? `${xPct}vw` : x != null ? x : 0 }),
+    top: yPct != null && !isBottomCenter ? `${yPct}${vhUnit}` : y != null ? y : undefined,
+    bottom: yPct != null && isBottomCenter ? `${Math.max(0, 100 - yPct)}${vhUnit}` : undefined,
     transform:
       anchor === "center"
         ? "translate(-50%, -50%)"
         : anchor === "top-center"
         ? "translate(-50%, 0%)"
+        : isBottomCenter
+        ? "translateY(0%)"
         : undefined,
   };
+  const wrapperClass = `absolute ${isBottomCenter ? 'w-full flex justify-center' : 'inline-block'} pointer-events-auto ${className}`;
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : 8 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: visible ? 1 : 0 }}
       transition={{ duration: 0.35 }}
-      className={`absolute pointer-events-auto ${className}`}
+      className={wrapperClass}
       style={style}
     >
       {children}
@@ -54,7 +62,8 @@ export function ScenePath({
   to = { x: 0, y: 0 },
   opacityFrom = 1,
   opacityTo = 1,
-  anchor = "top-left", // 'top-left' | 'center'
+  anchor = "top-left", // 'top-left' | 'center' | 'top-center' | 'bottom-center'
+  vhUnit = "vh", // allow 'dvh'
   className = "",
   hold = false, // when true, keep visible after 'end' at final position
   children,
@@ -70,30 +79,36 @@ export function ScenePath({
     const x = xIsPct
       ? `calc(${lerp(from.xPct ?? 0, to.xPct ?? 0, t)}vw)`
       : lerp(from.x ?? 0, to.x ?? 0, t);
+    const yPctVal = yIsPct ? lerp(from.yPct ?? 0, to.yPct ?? 0, t) : undefined;
     const y = yIsPct
-      ? `calc(${lerp(from.yPct ?? 0, to.yPct ?? 0, t)}vh)`
+      ? `calc(${yPctVal}${vhUnit})`
       : lerp(from.y ?? 0, to.y ?? 0, t);
-    return { x, y };
+    return { x, y, yPctVal };
   };
 
-  const { x, y } = computePos(from, to);
+  const { x, y, yPctVal } = computePos(from, to);
   const visible = hold ? currentFrame >= start : currentFrame >= start && currentFrame <= end;
   const opacity = lerp(opacityFrom, opacityTo, t);
 
+  const isBottomCenter = anchor === "bottom-center";
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: visible ? opacity : 0 }}
       transition={{ duration: 0.25 }}
-      className={`absolute pointer-events-auto ${className}`}
+      className={`absolute ${isBottomCenter ? 'w-full flex justify-center' : 'inline-block'} pointer-events-auto ${className}`}
       style={{
-        left: x,
-        top: y,
+        left: isBottomCenter ? 0 : x,
+        right: isBottomCenter ? 0 : undefined,
+        top: !isBottomCenter ? y : undefined,
+        bottom: isBottomCenter ? (yPctVal != null ? `${Math.max(0, 100 - yPctVal)}${vhUnit}` : undefined) : undefined,
         transform:
           anchor === "center"
             ? "translate(-50%, -50%)"
             : anchor === "top-center"
             ? "translate(-50%, 0%)"
+            : isBottomCenter
+            ? "translateY(0%)"
             : undefined,
       }}
     >

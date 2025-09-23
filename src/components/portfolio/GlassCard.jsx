@@ -22,7 +22,7 @@ export function GlassCard({ className = "", children, transparent = false }) {
           <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-white/10" />
         </>
       )}
-  <div className="relative p-6 sm:p-8 inline-block">{children}</div>
+  <div className="relative inline-block">{children}</div>
     </motion.div>
   );
 }
