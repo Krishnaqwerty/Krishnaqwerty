@@ -1,0 +1,53 @@
+"use client";
+
+import React, { useMemo } from "react";
+import { motion } from "framer-motion";
+import { GlassCard } from "./GlassCard";
+import { useFrame } from "@/components/ui/avatar";
+
+export function HeadingSection({ morphStart = 50, morphEnd = 80 }) {
+  const { currentFrame } = useFrame();
+  const t = useMemo(() => {
+    const clamped = Math.min(Math.max(currentFrame, morphStart), morphEnd);
+    return (clamped - morphStart) / Math.max(1, morphEnd - morphStart);
+  }, [currentFrame, morphStart, morphEnd]);
+
+  const scale = 1 - 0.3 * t; // shrink slightly
+  const padTop = 0; // always 0 so content can touch the top
+  const padBottom = 12; // keep slight bottom padding
+  const padX = 24 - 10 * t; // px
+  const radius = 20 - 6 * t; // px
+  const headingY = 0 + 6 * t;
+  const showFinal = t > 0; // on reaching top (morphStart), switch to final content
+
+  // Slight additional text-size reduction during the top morph
+  const lerp = (a, b, u) => a + (b - a) * u;
+  const sizeMinPx = lerp(24, 22, t);
+  const sizeVw = lerp(5.2, 4.8, t);
+  const sizeMaxPx = lerp(40, 36, t);
+  const dynamicClamp = `clamp(${sizeMinPx}px, ${sizeVw}vw, ${sizeMaxPx}px)`;
+
+  return (
+  <section id="heading" className="inline-block w-auto mx-auto px-0 pt-0 text-center">
+      <GlassCard
+        transparent
+        className="overflow-visible"
+        style={{ paddingTop: padTop, paddingBottom: padBottom, paddingLeft: padX, paddingRight: padX, borderRadius: radius }}
+      >
+        <motion.div style={{ scale, transformOrigin: "top center" }}>
+          <motion.h1
+            style={{ y: headingY, marginTop: 8 * (1 - t), fontSize: dynamicClamp }}
+            transition={{ duration: 0.2 }}
+            className="mt-0 font-semibold bg-gradient-to-r from-red-300 via-green-300 to-blue-300 bg-clip-text text-transparent whitespace-nowrap"
+          >
+            {showFinal
+              ? "Building Scalable Software | AI & ML Enthusiast | Android & Full-Stack Developer"
+              : "Krishna Kumar • Software Developer"}
+          </motion.h1>
+        </motion.div>
+      </GlassCard>
+    </section>
+  );
+}
+
+export default HeadingSection;
