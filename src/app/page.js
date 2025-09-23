@@ -42,7 +42,16 @@ export default function HomePage() {
     },
   ];
 
-  const projectCards12 = (repos || []).slice(0, 12).map((r) => (
+  const fallbackCards12 = Array.from({ length: 12 }).map((_, i) => (
+    <CompactCard
+      key={`fb12-${i}`}
+      title="View projects on GitHub"
+      subtitle="github.com/Krishnaqwerty"
+      desc="Open my repositories on GitHub while data loads."
+      href="https://github.com/Krishnaqwerty?tab=repositories"
+    />
+  ));
+  const projectCards12 = (repos && repos.length ? repos : []).slice(0, 12).map((r) => (
     <CompactCard
       key={r.id}
       title={r.name}
@@ -54,7 +63,16 @@ export default function HomePage() {
       )) : null}
     />
   ));
-  const projectCards8 = (repos || []).slice(0, 8).map((r) => (
+  const fallbackCards8 = Array.from({ length: 8 }).map((_, i) => (
+    <CompactCard
+      key={`fb8-${i}`}
+      title="Open GitHub"
+      subtitle="Krishnaqwerty"
+      desc="Tap to view all repositories."
+      href="https://github.com/Krishnaqwerty?tab=repositories"
+    />
+  ));
+  const projectCards8 = (repos && repos.length ? repos : []).slice(0, 8).map((r) => (
     <CompactCard key={r.id} title={r.name} subtitle={r.language} desc={r.description} href={r.html_url} />
   ));
 
@@ -64,7 +82,7 @@ export default function HomePage() {
       <SceneItem start={50} end={10000} className="inset-0">
         {/* Top-left nav with modals */}
         <TopLeftNav
-          projectItems={projectCards12}
+          projectItems={(projectCards12.length ? projectCards12 : fallbackCards12)}
           educationItems={educationItems.map((e, idx) => (
             <CompactCard key={idx} title={e.school} subtitle={e.year} desc={e.degree} />
           ))}
@@ -95,9 +113,9 @@ export default function HomePage() {
       <SceneItem start={30} end={184} xPct={50} yPct={92} anchor="center">
         <AboutSection />
       </SceneItem>
-      {/* Projects rotating palette: center at the middle of the right edge */}
-      <SceneItem start={70} end={184} xPct={100} yPct={50} anchor="center">
-        {projectCards8.length > 0 ? (
+      {/* Projects rotating palette: keep visible from heading-top to end */}
+      <SceneItem start={50} end={10000} xPct={100} yPct={50} anchor="center" className="z-20">
+        {(projectCards8.length > 0 ? (
           <RotatingPalette
             items={projectCards8}
             radius={"40vh"}
@@ -108,10 +126,16 @@ export default function HomePage() {
             mapToGaze={true}
           />
         ) : (
-          <div className="rounded-xl bg-white/5 ring-1 ring-white/10 backdrop-blur px-4 py-2 text-white/80">
-            Loading GitHub projects…
-          </div>
-        )}
+          <RotatingPalette
+            items={fallbackCards8}
+            radius={"38vh"}
+            itemSize={160}
+            centerX={"50%"}
+            centerY={"50%"}
+            rotationOffset={0}
+            mapToGaze={true}
+          />
+        ))}
       </SceneItem>
       {/* Contact removed from scroll (still available in nav modal) */}
     </SceneOverlay>
