@@ -32,12 +32,12 @@ export default function HomePage() {
     },
     {
       school: "S.R.K D.A.V Public School, Suriya",
-      degree: "12th with Science – 75.00% — Suriya, Jharkhand",
+      degree: "12th with Science  — Suriya, Jharkhand",
       year: "2020 – 2022",
     },
     {
       school: "S.R.K D.A.V Public School, Suriya",
-      degree: "10th with Science – 93.00% — Suriya, Jharkhand",
+      degree: "10th with Science  — Suriya, Jharkhand",
       year: "2019 – 2020",
     },
   ];

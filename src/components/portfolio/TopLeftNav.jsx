@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { Briefcase, GraduationCap, FileText, Contact } from "lucide-react";
 import RotatingPalette from "./RotatingPalette";
@@ -9,6 +9,14 @@ import { GlassCard } from "./GlassCard";
 
 export default function TopLeftNav({ projectItems = [], educationItems = [], contactContent }) {
   const [open, setOpen] = useState(null); // 'work' | 'education' | 'resume' | 'contact' | null
+  const [resumeTs, setResumeTs] = useState(0);
+
+  // When opening the Resume modal, refresh the cache-busting token so replaced files load.
+  useEffect(() => {
+    if (open === 'resume') {
+      setResumeTs(Date.now());
+    }
+  }, [open]);
 
   const items = [
     { id: 'work', label: 'Work', Icon: Briefcase },
@@ -187,8 +195,21 @@ export default function TopLeftNav({ projectItems = [], educationItems = [], con
                 )}
                 {open === 'resume' && (
                   <div className="relative w-[80vw] h-[80vh]">
-                    <div className="w-full h-full rounded-xl overflow-hidden">
-                      <iframe src="/KrishnaKumar.pdf" className="w-full h-full" />
+                    <div className="w-full h-full rounded-xl overflow-hidden bg-black/40">
+                      <iframe
+                        key={resumeTs}
+                        src={`/KrishnaKumar.pdf?v=${resumeTs}`}
+                        className="w-full h-full"
+                        title="Krishna Kumar - Resume"
+                      />
+                    </div>
+                    <div className="mt-2 flex items-center justify-end gap-3 text-xs text-white/80">
+                      <a href="/KrishnaKumar.pdf" target="_blank" rel="noopener noreferrer" className="rounded-md bg-white/10 ring-1 ring-white/20 px-2 py-1 hover:bg-white/15">
+                        Open in new tab
+                      </a>
+                      <a href="/KrishnaKumar.pdf" download className="rounded-md bg-white/10 ring-1 ring-white/20 px-2 py-1 hover:bg-white/15">
+                        Download
+                      </a>
                     </div>
                   </div>
                 )}
