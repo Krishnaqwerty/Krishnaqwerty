@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "./GlassCard";
 import { useFrame } from "@/components/ui/avatar";
+import { profile } from "@/lib/profile";
 
 export function HeadingSection({ morphStart = 50, morphEnd = 80 }) {
   const { currentFrame } = useFrame();
@@ -41,8 +42,8 @@ export function HeadingSection({ morphStart = 50, morphEnd = 80 }) {
             className="mt-0 font-semibold bg-gradient-to-r from-red-300 via-green-300 to-blue-300 bg-clip-text text-transparent whitespace-nowrap"
           >
             {showFinal
-              ? "Building Scalable Software | AI & ML Enthusiast | Android & Full-Stack Developer"
-              : "Krishna Kumar • Software Developer"}
+              ? "Full-Stack Engineer | Intelligent Applications"
+              : `${profile.name} • ${profile.role}`}
           </motion.h1>
         </motion.div>
       </GlassCard>

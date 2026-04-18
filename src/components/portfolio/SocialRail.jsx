@@ -2,22 +2,20 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Github, Linkedin, Globe, Mail, PenTool } from "lucide-react";
+import { Github, Linkedin, Mail, PenTool } from "lucide-react";
 import { GlassCard } from "./GlassCard";
+import { profile } from "@/lib/profile";
 
-const socials = [
-  { href: "mailto:meet.kumarkrishna@gmail.com", icon: Mail, label: "Email" },
-  { href: "https://github.com/Krishnaqwerty", icon: Github, label: "GitHub" },
-  { href: "https://www.linkedin.com/in/krishnaqwerty/", icon: Linkedin, label: "LinkedIn" },
-  { href: "https://krishnaqwerty.medium.com/", icon: PenTool, label: "Medium" },
-];
+const iconMap = { Email: Mail, GitHub: Github, LinkedIn: Linkedin, Medium: PenTool };
 
 export function SocialRail() {
   return (
     <div className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 pointer-events-auto">
       <GlassCard className="p-2">
         <ul className="flex flex-col gap-3">
-          {socials.map((s, i) => (
+          {profile.socialLinks.map((s) => {
+            const Icon = iconMap[s.label];
+            return (
             <li key={s.href}>
               <motion.a
                 href={s.href}
@@ -28,10 +26,10 @@ export function SocialRail() {
                 transition={{ type: "spring", stiffness: 300, damping: 12 }}
                 aria-label={s.label}
               >
-                <s.icon className="w-5 h-5 text-white/90" />
+                <Icon className="w-5 h-5 text-white/90" />
               </motion.a>
             </li>
-          ))}
+          );})}
         </ul>
       </GlassCard>
     </div>

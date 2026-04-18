@@ -2,7 +2,6 @@
 "use client";
 
 import HeadingSection from "@/components/portfolio/HeadingSection";
-import AboutSection from "@/components/portfolio/AboutSection";
 import ContactsSection from "@/components/portfolio/ContactsSection";
 import { SceneOverlay, SceneItem, ScenePath } from "@/components/portfolio/SceneOverlay";
 import SocialRail from "@/components/portfolio/SocialRail";
@@ -10,18 +9,75 @@ import RotatingPalette from "@/components/portfolio/RotatingPalette";
 import { MiniIdentity } from "@/components/portfolio/MiniBubbles";
 import TopLeftNav from "@/components/portfolio/TopLeftNav";
 import CompactCard from "@/components/portfolio/cards/CompactCard";
+import VisitorCounter from "@/components/portfolio/VisitorCounter";
+import { profile } from "@/lib/profile";
 import { useEffect, useState } from "react";
+
+const REPO_CACHE_KEY = "portfolio_repos_cache_v1";
+const REPO_CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes
 
 export default function HomePage() {
   // lightweight client fetch for repos to drive palettes and nav modals
   const [repos, setRepos] = useState([]);
+  const [reposLoading, setReposLoading] = useState(true);
+  const [reposError, setReposError] = useState("");
+
+  const loadRepos = async ({ force = false, signal } = {}) => {
+    setReposError("");
+
+    if (!force) {
+      try {
+        const raw = localStorage.getItem(REPO_CACHE_KEY);
+        if (raw) {
+          const cached = JSON.parse(raw);
+          const isFresh = Date.now() - cached?.timestamp < REPO_CACHE_TTL_MS;
+          if (isFresh && Array.isArray(cached?.repos)) {
+            setRepos(cached.repos);
+            setReposLoading(false);
+            return;
+          }
+        }
+      } catch {
+        // Ignore cache read issues and fallback to network.
+      }
+    }
+
+    setReposLoading(true);
+    try {
+      const response = await fetch(`https://api.github.com/users/${profile.githubUser}/repos?per_page=100&sort=updated`, {
+        headers: { Accept: "application/vnd.github+json" },
+        signal,
+      });
+      if (!response.ok) {
+        throw new Error(`GitHub API request failed (${response.status})`);
+      }
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error("Unexpected GitHub response shape");
+      }
+
+      setRepos(data);
+      try {
+        localStorage.setItem(
+          REPO_CACHE_KEY,
+          JSON.stringify({ timestamp: Date.now(), repos: data })
+        );
+      } catch {
+        // Ignore cache write issues; live data already loaded.
+      }
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      setReposError("Could not load latest GitHub projects. Showing fallback cards.");
+      setRepos([]);
+    } finally {
+      setReposLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("https://api.github.com/users/Krishnaqwerty/repos?per_page=100&sort=updated", {
-      headers: { Accept: "application/vnd.github+json" },
-    })
-      .then((r) => r.json())
-      .then((d) => setRepos(Array.isArray(d) ? d : []))
-      .catch(() => {});
+    const controller = new AbortController();
+    loadRepos({ signal: controller.signal });
+    return () => controller.abort();
   }, []);
 
   const educationItems = [
@@ -46,9 +102,9 @@ export default function HomePage() {
     <CompactCard
       key={`fb12-${i}`}
       title="View projects on GitHub"
-      subtitle="github.com/Krishnaqwerty"
+      subtitle={`github.com/${profile.githubUser}`}
       desc="Open my repositories on GitHub while data loads."
-      href="https://github.com/Krishnaqwerty?tab=repositories"
+      href={profile.githubReposUrl}
     />
   ));
   const projectCards12 = (repos && repos.length ? repos : []).slice(0, 12).map((r) => (
@@ -66,10 +122,10 @@ export default function HomePage() {
   const fallbackCards8 = Array.from({ length: 8 }).map((_, i) => (
     <CompactCard
       key={`fb8-${i}`}
-      title="Open GitHub"
-      subtitle="Krishnaqwerty"
-      desc="Tap to view all repositories."
-      href="https://github.com/Krishnaqwerty?tab=repositories"
+      title={reposLoading ? "Loading projects..." : "Open GitHub"}
+      subtitle={profile.githubUser}
+      desc={reposLoading ? "Fetching repositories from GitHub." : "Tap to view all repositories."}
+      href={profile.githubReposUrl}
     />
   ));
   const projectCards8 = (repos && repos.length ? repos : []).slice(0, 8).map((r) => (
@@ -79,13 +135,11 @@ export default function HomePage() {
   return (
     <SceneOverlay>
       {/* Show nav, social rail, and minibubble only after heading reaches top (frame ~50) */}
-      <SceneItem start={50} end={10000} className="inset-0">
+      <SceneItem start={50} end={10000} className="inset-0 z-50">
         {/* Top-left nav with modals */}
         <TopLeftNav
           projectItems={(projectCards12.length ? projectCards12 : fallbackCards12)}
-          educationItems={educationItems.map((e, idx) => (
-            <CompactCard key={idx} title={e.school} subtitle={e.year} desc={e.degree} />
-          ))}
+          educationItems={educationItems}
           contactContent={<ContactsSection />}
         />
         {/* Social rail mid-left */}
@@ -93,6 +147,20 @@ export default function HomePage() {
         {/* Mini bubble */}
         <MiniIdentity />
       </SceneItem>
+      {reposError && (
+        <SceneItem start={50} end={10000} xPct={50} yPct={6} anchor="top-center" className="z-40">
+          <div className="rounded-xl bg-rose-950/55 px-3 py-2 text-xs text-rose-100 ring-1 ring-rose-300/30 backdrop-blur-md flex items-center gap-2">
+            <span>{reposError}</span>
+            <button
+              type="button"
+              onClick={() => loadRepos({ force: true })}
+              className="rounded-md bg-white/15 px-2 py-1 text-rose-50 hover:bg-white/25"
+            >
+              Retry
+            </button>
+          </div>
+        </SceneItem>
+      )}
       {/* Move heading from center-bottom to center-top; heading component handles morph; subheading shows from start */}
       <ScenePath
         start={1}
@@ -109,10 +177,6 @@ export default function HomePage() {
         </div>
       </ScenePath>
       {/* No separate morph component needed */}
-      {/* About appears when heading reaches top (frame 50) and persists at bottom-center */}
-      <SceneItem start={50} end={10000} x={"50%"} yPct={100} vhUnit="dvh" anchor="bottom-center" className="z-30 w-full max-w-3xl">
-        <AboutSection />
-      </SceneItem>
       {/* Projects rotating palette: keep visible from heading-top to end */}
       <SceneItem start={50} end={10000} xPct={100} yPct={50} anchor="center" className="z-20">
         {(projectCards8.length > 0 ? (
@@ -138,6 +202,7 @@ export default function HomePage() {
         ))}
       </SceneItem>
       {/* Contact removed from scroll (still available in nav modal) */}
+      <VisitorCounter />
     </SceneOverlay>
   );
 }
