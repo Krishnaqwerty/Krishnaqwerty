@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AvatarApply } from "@/components/ui/avatar-apply";
+import { profile } from "@/lib/profile";
 
 
 const geistSans = Geist({
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Krishna Kumar",
-  description: "Portfolio of Krishna Kumar - Software Developer and Tech Enthusiast",
+  title: profile.name,
+  description: `Portfolio of ${profile.name} - ${profile.role} and Tech Enthusiast`,
 };
 
 export default function RootLayout({ children }) {

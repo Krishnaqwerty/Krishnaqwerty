@@ -2,8 +2,9 @@
 
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { GlassCard } from "./GlassCard";
+import { LiquidGlass } from "./LiquidGlass";
 import { useFrame } from "@/components/ui/avatar";
+import { profile } from "@/lib/profile";
 
 export default function MorphHeader({ start = 1, end = 60 }) {
   const { currentFrame } = useFrame();
@@ -25,7 +26,7 @@ export default function MorphHeader({ start = 1, end = 60 }) {
 
   return (
     <div className="w-[92vw] max-w-5xl">
-      <GlassCard
+      <LiquidGlass
         className="overflow-hidden"
         style={{ paddingTop: padY, paddingBottom: padY, paddingLeft: padX, paddingRight: padX, borderRadius: radius }}
       >
@@ -36,7 +37,7 @@ export default function MorphHeader({ start = 1, end = 60 }) {
             transition={{ duration: 0.2 }}
             className="text-4xl sm:text-5xl font-extrabold tracking-tight"
           >
-            Hi, I'm <span className="bg-gradient-to-r from-fuchsia-400 via-sky-400 to-emerald-400 bg-clip-text text-transparent">Krishna Kumar</span>
+              Hi, I'm <span className="bg-gradient-to-r from-fuchsia-400 via-sky-400 to-emerald-400 bg-clip-text text-transparent">{profile.name}</span>
           </motion.h1>
           {/* Sub-heading morphs in */}
           <motion.p
@@ -44,10 +45,10 @@ export default function MorphHeader({ start = 1, end = 60 }) {
             transition={{ duration: 0.25 }}
             className="mt-2 text-base sm:text-lg font-medium bg-gradient-to-r from-white/85 via-slate-200/85 to-sky-200/85 bg-clip-text text-transparent"
           >
-            Software Developer • Full‑stack • Building delightful web experiences.
+            {profile.role} • Full‑stack • Building delightful web experiences.
           </motion.p>
         </motion.div>
-      </GlassCard>
+      </LiquidGlass>
     </div>
   );
 }
