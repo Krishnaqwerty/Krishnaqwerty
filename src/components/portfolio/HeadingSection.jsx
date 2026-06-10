@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { GlassCard } from "./GlassCard";
+import { LiquidGlass } from "./LiquidGlass";
 import { useFrame } from "@/components/ui/avatar";
 import { profile } from "@/lib/profile";
 
@@ -30,8 +30,7 @@ export function HeadingSection({ morphStart = 50, morphEnd = 80 }) {
 
   return (
   <section id="heading" className="inline-block w-auto mx-auto px-0 pt-0 text-center">
-      <GlassCard
-        transparent
+      <LiquidGlass
         className="overflow-visible"
         style={{ paddingTop: padTop, paddingBottom: padBottom, paddingLeft: padX, paddingRight: padX, borderRadius: radius }}
       >
@@ -39,14 +38,14 @@ export function HeadingSection({ morphStart = 50, morphEnd = 80 }) {
           <motion.h1
             style={{ y: headingY, marginTop: 8 * (1 - t), fontSize: dynamicClamp }}
             transition={{ duration: 0.2 }}
-            className="mt-0 font-semibold bg-gradient-to-r from-red-300 via-green-300 to-blue-300 bg-clip-text text-transparent whitespace-nowrap"
+            className="mt-0 font-semibold bg-gradient-to-r from-red-200 via-emerald-200 to-sky-200 bg-clip-text text-transparent whitespace-nowrap drop-shadow-[0_2px_16px_rgba(255,255,255,0.18)]"
           >
             {showFinal
               ? "Full-Stack Engineer | Intelligent Applications"
               : `${profile.name} • ${profile.role}`}
           </motion.h1>
         </motion.div>
-      </GlassCard>
+      </LiquidGlass>
     </section>
   );
 }

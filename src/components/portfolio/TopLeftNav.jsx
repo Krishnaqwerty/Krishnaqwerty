@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { Briefcase, GraduationCap, FileText, Contact, Download, Linkedin } from "lucide-react";
-import RotatingPalette from "./RotatingPalette";
+import { ArrowUpRight, Briefcase, Globe, Github, GraduationCap, FileText, Contact, Download, Linkedin } from "lucide-react";
+// RotatingPalette intentionally not used in the nav modal to reduce runtime
+// bundle and complexity; projects are shown as a simple responsive grid instead.
 import EducationTimeline from "./EducationTimeline";
 import CompactCard from "./cards/CompactCard";
 import { GlassCard } from "./GlassCard";
@@ -16,6 +17,9 @@ export default function TopLeftNav({ projectItems = [], educationItems = [], con
   const [resumeLeadSending, setResumeLeadSending] = useState(false);
   const [resumeLeadError, setResumeLeadError] = useState("");
   const [resumeDownloadCount, setResumeDownloadCount] = useState(0);
+  const [pebbleVisitCount, setPebbleVisitCount] = useState(0);
+  const [owaspVisitCount, setOwaspVisitCount] = useState(0);
+  const [petVisitCount, setPetVisitCount] = useState(0);
   const modalRef = useRef(null);
   const activeTriggerRef = useRef(null);
   const buttonRefs = useRef({});
@@ -111,6 +115,69 @@ export default function TopLeftNav({ projectItems = [], educationItems = [], con
     };
   }, []);
 
+  useEffect(() => {
+    if (open !== "work") return;
+
+    let cancelled = false;
+
+    const loadPebbleVisitCount = async () => {
+      try {
+        const response = await fetch("/api/pebble-visit-count/", { cache: "no-store" });
+        const result = await response.json();
+        if (!cancelled && response.ok) {
+          setPebbleVisitCount(Number(result?.count || 0));
+        }
+      } catch {
+        if (!cancelled) {
+          setPebbleVisitCount(0);
+        }
+      }
+    };
+
+    const loadOwaspVisitCount = async () => {
+      try {
+        const response = await fetch("/api/owasp-visit-count/", { cache: "no-store" });
+        const result = await response.json();
+        if (!cancelled && response.ok) {
+          setOwaspVisitCount(Number(result?.count || 0));
+        }
+      } catch {
+        if (!cancelled) {
+          setOwaspVisitCount(0);
+        }
+      }
+    };
+
+    const loadPetVisitCount = async () => {
+      try {
+        const response = await fetch("/api/pet-visit-count/", { cache: "no-store" });
+        const result = await response.json();
+        if (!cancelled && response.ok) {
+          setPetVisitCount(Number(result?.count || 0));
+        }
+      } catch {
+        if (!cancelled) {
+          setPetVisitCount(0);
+        }
+      }
+    };
+
+    loadPebbleVisitCount();
+    loadOwaspVisitCount();
+    loadPetVisitCount();
+
+    const pebblePollId = window.setInterval(() => {
+      loadPebbleVisitCount();
+      loadOwaspVisitCount();
+      loadPetVisitCount();
+    }, 15000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(pebblePollId);
+    };
+  }, [open]);
+
   const handleResumeDownload = async () => {
     const link = document.createElement("a");
     link.href = resumePdfPath;
@@ -165,6 +232,60 @@ export default function TopLeftNav({ projectItems = [], educationItems = [], con
     } finally {
       setResumeLeadSending(false);
     }
+  };
+
+  const recordPebbleVisit = () => {
+    setPebbleVisitCount((count) => count + 1);
+
+    fetch("/api/pebble-visit-count/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((response) => response.json().catch(() => ({})).then((result) => ({ response, result })))
+      .then(({ response, result }) => {
+        if (response.ok) {
+          setPebbleVisitCount(Number(result?.count || 0));
+        }
+      })
+      .catch(() => {
+        // Keep the card usable even if the analytics update fails.
+      });
+  };
+
+  const recordOwaspVisit = () => {
+    setOwaspVisitCount((count) => count + 1);
+
+    fetch("/api/owasp-visit-count/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((response) => response.json().catch(() => ({})).then((result) => ({ response, result })))
+      .then(({ response, result }) => {
+        if (response.ok) {
+          setOwaspVisitCount(Number(result?.count || 0));
+        }
+      })
+      .catch(() => {
+        // Keep the card usable even if the analytics update fails.
+      });
+  };
+
+  const recordPetVisit = () => {
+    setPetVisitCount((count) => count + 1);
+
+    fetch("/api/pet-visit-count/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((response) => response.json().catch(() => ({})).then((result) => ({ response, result })))
+      .then(({ response, result }) => {
+        if (response.ok) {
+          setPetVisitCount(Number(result?.count || 0));
+        }
+      })
+      .catch(() => {
+        // Keep the card usable even if the analytics update fails.
+      });
   };
 
   const items = [
@@ -489,20 +610,269 @@ export default function TopLeftNav({ projectItems = [], educationItems = [], con
                 </div>
                 {open === 'work' && (
                   <div className="relative w-[80vw] h-[70vh]">
-                    {React.Children.count(projectItems) > 0 ? (
-                      <RotatingPalette
-                        items={projectItems}
-                        radius={260}
-                        itemSize={180}
-                        centerX={"50%"}
-                        centerY={"50%"}
-                        mapToGaze={false}
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center text-white/70">
-                        Loading projects...
+                    <div className="h-full overflow-y-auto p-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="relative overflow-hidden rounded-xl border border-white/15 bg-white/5 ring-1 ring-inset ring-white/10 backdrop-blur-md shadow-[0_12px_30px_-15px_rgba(0,0,0,0.6)] hover:shadow-[0_24px_60px_-15px_rgba(0,0,0,0.7)]">
+                          <div className="p-4">
+                            <div className="overflow-hidden rounded-lg border border-black/10 bg-[#f3efe7] shadow-inner">
+                              <div className="relative flex aspect-[16/10] items-center justify-center bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.8),rgba(241,237,229,0.96)_55%,rgba(231,225,214,0.98))]">
+                                <div className="absolute inset-0 bg-[linear-gradient(rgba(120,120,120,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(120,120,120,0.08)_1px,transparent_1px)] bg-[size:22px_22px] opacity-30" />
+                                <div className="absolute left-4 top-4 grid grid-cols-4 gap-2">
+                                  {[
+                                    "h-7 w-7",
+                                    "h-10 w-10",
+                                    "h-5 w-5",
+                                    "h-12 w-12",
+                                    "h-6 w-6",
+                                    "h-9 w-9",
+                                    "h-4 w-4",
+                                    "h-11 w-11",
+                                    "h-8 w-8",
+                                    "h-6 w-6",
+                                  ].map((size, index) => (
+                                    <span
+                                      key={index}
+                                      className={`${size} rounded-full bg-black shadow-[0_2px_8px_rgba(0,0,0,0.18)]`}
+                                    />
+                                  ))}
+                                </div>
+                                <div className="absolute inset-x-0 bottom-4 px-4 text-center">
+                                  <div className="text-[13px] font-semibold tracking-[0.08em] text-black/80">Pebble 1.0</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-sm font-semibold text-white">Pebble 1.0</div>
+                                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">Minimal Language</div>
+                                </div>
+                                <span className="rounded-full bg-sky-500/15 px-2 py-1 text-[10px] font-medium text-sky-100 ring-1 ring-sky-300/20">Featured</span>
+                              </div>
+
+                              <p className="text-[12px] leading-5 text-white/75">
+                                A minimal programming language with a single-pass compiler and stack-based VM. Pebble is intentionally small. The goal is to present the language like a real system, while keeping the implementation understandable and personal.
+                              </p>
+
+                              <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
+                                <a
+                                  href="https://pebble.krishnakumar.tech/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={recordPebbleVisit}
+                                  className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 text-white/85 ring-1 ring-white/15 hover:bg-white/15"
+                                >
+                                  <Globe className="h-3.5 w-3.5" />
+                                  Website
+                                </a>
+                                <a
+                                  href="https://github.com/Krishnaqwerty/Pebble"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={recordPebbleVisit}
+                                  className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 text-white/85 ring-1 ring-white/15 hover:bg-white/15"
+                                >
+                                  <Github className="h-3.5 w-3.5" />
+                                  GitHub
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-medium text-white/80 ring-1 ring-white/15 backdrop-blur-md">
+                            Visits {pebbleVisitCount}
+                          </div>
+                        </div>
+
+                        <div className="relative overflow-hidden rounded-xl border border-white/15 bg-white/5 ring-1 ring-inset ring-white/10 backdrop-blur-md shadow-[0_12px_30px_-15px_rgba(0,0,0,0.6)] hover:shadow-[0_24px_60px_-15px_rgba(0,0,0,0.7)]">
+                          <div className="p-4">
+                            <div className="overflow-hidden rounded-lg border border-cyan-950/20 bg-[#06111a] shadow-inner">
+                              <div className="relative flex aspect-[16/10] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_35%,rgba(9,87,126,0.52),rgba(6,17,26,0.99)_72%)] text-cyan-50">
+                                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.18)_0%,transparent_24%,transparent_74%,rgba(34,211,238,0.08)_100%)]" />
+                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:18px_18px] opacity-16" />
+                                <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-cyan-200/15 bg-white/5 px-3 py-1.5 backdrop-blur-md">
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-cyan-200/15 bg-cyan-300/10 text-cyan-100 shadow-[0_0_25px_rgba(34,211,238,0.12)]">
+                                    <span className="text-lg">🛡️</span>
+                                  </div>
+                                  <div className="leading-tight">
+                                    <div className="text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-100/85">OWASP</div>
+                                    <div className="text-[10px] uppercase tracking-[0.2em] text-cyan-100/55">Scanner</div>
+                                  </div>
+                                </div>
+                                <div className="absolute right-4 top-4 rounded-full border border-cyan-200/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-cyan-100/75 backdrop-blur-md">
+                                  Python
+                                </div>
+
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-left">
+                                  <div className="text-[15px] font-semibold uppercase tracking-[0.44em] text-cyan-100/50">Web App</div>
+                                  <div className="mt-2 max-w-[9rem] text-[28px] font-black uppercase leading-[0.86] tracking-[0.22em] text-white drop-shadow-[0_12px_35px_rgba(0,0,0,0.65)] sm:max-w-[10rem] sm:text-[32px]">
+                                    OWASP
+                                  </div>
+                                </div>
+
+                                <div className="absolute right-4 bottom-16 text-right">
+                                  <div className="text-[26px] font-black uppercase leading-[0.88] tracking-[0.14em] text-cyan-50 drop-shadow-[0_12px_35px_rgba(0,0,0,0.65)] sm:text-[30px]">
+                                    Scanner
+                                  </div>
+                                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-cyan-200/15 bg-cyan-300/8 px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.34em] text-cyan-100/75">
+                                    SQLi · XSS · Crawl
+                                  </div>
+                                </div>
+
+                                <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-[10px] uppercase tracking-[0.28em] text-cyan-100/70">
+                                  <span>Prototype</span>
+                                  <span>Reflected attacks</span>
+                                  <span>Error heuristics</span>
+                                </div>
+
+                                <div className="absolute -left-2 top-8 h-24 w-24 rounded-full border border-cyan-200/10 bg-cyan-300/5 blur-2xl" />
+                                <div className="absolute -right-6 bottom-6 h-28 w-28 rounded-full border border-cyan-200/10 bg-cyan-300/5 blur-2xl" />
+                              </div>
+                            </div>
+
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-sm font-semibold text-white">🛡️ OWASP Scanner</div>
+                                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">Python Security Prototype</div>
+                                </div>
+                                <span className="rounded-full bg-cyan-500/15 px-2 py-1 text-[10px] font-medium text-cyan-100 ring-1 ring-cyan-300/20">Security</span>
+                              </div>
+
+                              <p className="text-[12px] leading-5 text-white/75">
+                                A Python-based prototype to detect common web vulnerabilities, scanning for SQL Injection error-based heuristics and reflected XSS. It crawls pages and forms (GET/POST) up to the chosen depth, then injects common payloads and looks for error or reflection markers.
+                              </p>
+
+                              <div className="flex flex-wrap gap-2 pt-1 text-[11px]">
+                                <a
+                                  href="http://owasp.krishnakumar.tech/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={recordOwaspVisit}
+                                  className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 text-white/85 ring-1 ring-white/15 hover:bg-white/15"
+                                >
+                                  <ArrowUpRight className="h-3.5 w-3.5" />
+                                  Visit Link
+                                </a>
+                                <a
+                                  href="https://github.com/Krishnaqwerty/OWASP-Scanner"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={recordOwaspVisit}
+                                  className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 text-white/85 ring-1 ring-white/15 hover:bg-white/15"
+                                >
+                                  <Github className="h-3.5 w-3.5" />
+                                  GitHub
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-medium text-white/80 ring-1 ring-white/15 backdrop-blur-md">
+                            Visits {owaspVisitCount}
+                          </div>
+                        </div>
+
+                        <div className="relative overflow-hidden rounded-xl border border-white/15 bg-white/5 ring-1 ring-inset ring-white/10 backdrop-blur-md shadow-[0_12px_30px_-15px_rgba(0,0,0,0.6)] hover:shadow-[0_24px_60px_-15px_rgba(0,0,0,0.7)]">
+                          <div className="p-4">
+                            <div className="overflow-hidden rounded-lg border border-amber-950/20 bg-[#f4efe5] shadow-inner">
+                              <div className="relative flex aspect-[16/10] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.92),rgba(244,237,224,0.97)_58%,rgba(233,223,205,0.99))] text-amber-950">
+                                <div className="absolute inset-0 bg-[linear-gradient(rgba(160,120,70,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(160,120,70,0.08)_1px,transparent_1px)] bg-[size:22px_22px] opacity-25" />
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.7),transparent_30%),radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.55),transparent_24%),radial-gradient(circle_at_50%_85%,rgba(105,132,170,0.12),transparent_26%)]" />
+
+                                <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full border border-amber-900/10 bg-white/65 px-3 py-1.5 backdrop-blur-md">
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-950 text-amber-50 shadow-[0_0_18px_rgba(120,78,38,0.18)]">
+                                    <span className="text-[12px] font-black">P</span>
+                                  </div>
+                                  <div className="leading-tight">
+                                    <div className="text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-950/80">Hybrid</div>
+                                    <div className="text-[10px] uppercase tracking-[0.18em] text-amber-950/60">CNN-SVM</div>
+                                  </div>
+                                </div>
+
+                                <div className="absolute right-4 top-4 rounded-full border border-blue-900/10 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-950/75 backdrop-blur-md">
+                                  Vision AI
+                                </div>
+
+                                <div className="absolute left-5 top-1/2 -translate-y-1/2 space-y-2 text-left">
+                                  <div className="flex gap-2">
+                                    <span className="h-5 w-5 rounded-full bg-amber-950/92 shadow-[0_2px_10px_rgba(0,0,0,0.2)]" />
+                                    <span className="mt-4 h-4 w-4 rounded-full bg-amber-950/92 shadow-[0_2px_10px_rgba(0,0,0,0.18)]" />
+                                  </div>
+                                  <div className="flex gap-2 pl-2">
+                                    <span className="h-6 w-6 rounded-full bg-amber-950/92 shadow-[0_2px_10px_rgba(0,0,0,0.2)]" />
+                                    <span className="mt-4 h-5 w-5 rounded-full bg-amber-950/92 shadow-[0_2px_10px_rgba(0,0,0,0.18)]" />
+                                  </div>
+                                  <div className="flex gap-2 pl-5">
+                                    <span className="h-8 w-8 rounded-full bg-amber-950/92 shadow-[0_2px_10px_rgba(0,0,0,0.2)]" />
+                                  </div>
+                                </div>
+
+                                <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 text-center">
+                                  <div className="mx-auto max-w-[12rem] text-[24px] font-black uppercase leading-[0.9] tracking-[0.14em] text-amber-950 drop-shadow-[0_10px_28px_rgba(0,0,0,0.22)] sm:max-w-[13rem] sm:text-[28px]">
+                                    Hybrid CNN-SVM
+                                  </div>
+                                  <div className="mt-3 text-[11px] font-semibold uppercase tracking-[0.32em] text-blue-950/72">
+                                    Pet Breed Classification
+                                  </div>
+                                  <div className="mx-auto mt-3 h-px w-32 bg-blue-900/30" />
+                                  <div className="mt-3 text-[10px] uppercase tracking-[0.24em] text-amber-950/65">
+                                    VGG16 • ResNet50 • MobileNetV2 • PCA • RBF-SVM
+                                  </div>
+                                </div>
+
+                                <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-[10px] uppercase tracking-[0.28em] text-amber-950/62">
+                                  <span>Oxford-IIIT Pet</span>
+                                  <span>Fine-grained accuracy</span>
+                                  <span>Robustness</span>
+                                </div>
+
+                                <div className="absolute -left-6 top-6 h-24 w-24 rounded-full border border-blue-900/10 bg-blue-300/10 blur-2xl" />
+                                <div className="absolute -right-4 bottom-5 h-24 w-24 rounded-full border border-amber-900/10 bg-amber-300/10 blur-2xl" />
+                              </div>
+                            </div>
+
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-sm font-semibold text-white">Hybrid Pet Breed Classification System</div>
+                                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">CNN + SVM Research Project</div>
+                                </div>
+                                <span className="rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-medium text-amber-100 ring-1 ring-amber-300/20">Research</span>
+                              </div>
+
+                              <p className="text-[12px] leading-5 text-white/75">
+                                Hybrid CNN-SVM system for pet breed classification. Extracts features using VGG16, ResNet50, and MobileNetV2, refines them with PCA, and classifies with RBF-SVM for fine-grained accuracy and stronger robustness on the Oxford-IIIT Pet dataset.
+                              </p>
+
+                              <div className="flex flex-wrap gap-2 pt-1 text-[11px]">
+                                <a
+                                  href="https://github.com/Krishnaqwerty/Hybrid_Pet_Breed_Classification_System_using_CNN_and_SVM"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={recordPetVisit}
+                                  className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 text-white/85 ring-1 ring-white/15 hover:bg-white/15"
+                                >
+                                  <Github className="h-3.5 w-3.5" />
+                                  GitHub
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-medium text-white/80 ring-1 ring-white/15 backdrop-blur-md">
+                            Visits {petVisitCount}
+                          </div>
+                        </div>
+
+                        {Array.from({ length: 0 }).map((_, i) => (
+                          <div key={`blank-${i}`} className="w-full">
+                            <CompactCard title={" "} subtitle={" "} desc={" "} />
+                          </div>
+                        ))}
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
                 {open === 'education' && (

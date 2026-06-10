@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { GlassCard } from "./GlassCard";
+import { LiquidGlass } from "./LiquidGlass";
 import { useFrame } from "@/components/ui/avatar";
 import { profile } from "@/lib/profile";
 
@@ -26,7 +26,7 @@ export default function MorphHeader({ start = 1, end = 60 }) {
 
   return (
     <div className="w-[92vw] max-w-5xl">
-      <GlassCard
+      <LiquidGlass
         className="overflow-hidden"
         style={{ paddingTop: padY, paddingBottom: padY, paddingLeft: padX, paddingRight: padX, borderRadius: radius }}
       >
@@ -48,7 +48,7 @@ export default function MorphHeader({ start = 1, end = 60 }) {
             {profile.role} • Full‑stack • Building delightful web experiences.
           </motion.p>
         </motion.div>
-      </GlassCard>
+      </LiquidGlass>
     </div>
   );
 }
