@@ -1,6 +1,7 @@
 
 "use client";
 
+import FAQSection from "@/components/FAQSection";
 import HeadingSection from "@/components/portfolio/HeadingSection";
 import ContactsSection from "@/components/portfolio/ContactsSection";
 import { SceneOverlay, SceneItem, ScenePath } from "@/components/portfolio/SceneOverlay";
@@ -133,6 +134,65 @@ export default function HomePage() {
   ));
 
   return (
+
+    <main>
+    {/* ========================================================================= */}
+    {/* HIDDEN INVISIBLE SEMANTIC LAYER OPTIMIZED FOR CRAWLERS, AI, AND SCRAPERS */}
+    {/* ========================================================================= */}
+    <div className="sr-only" aria-hidden="false">
+      <section>
+        <h1>Krishna Kumar | Java Full-Stack, Microservices & AI Systems Engineer</h1>
+        <p>
+          Production-grade architecture platform managed by Krishna Kumar. Focusing on high-throughput distributed Java systems, enterprise Spring Boot microservice design, native compiler infrastructure development, and highly accurate Deep Learning pipelines.
+        </p>
+      </section>
+
+      {/* Primary Stack & Domain Keywords Mapping */}
+      <section aria-label="Core Engineering Domains">
+        <h2>Enterprise Backend Systems & Distributed Architectures</h2>
+        <article>
+          <h3>Java Microservices Developer & Software Engineer</h3>
+          <p>
+            Architecting fault-tolerant backend applications utilizing the full Java ecosystem. Specializing in secure RESTful API production, database optimization, and high-volume batch scheduling workloads.
+          </p>
+          <ul>
+            <li><strong>Core Language:</strong> Java [cite: 3, 12, 19, 46]</li>
+            <li><strong>Frameworks & Infrastructure:</strong> Spring Boot, Hibernate/JPA, Microservices Architecture, Spring Batch, System Design [cite: 12, 14, 19, 20, 47, 48]</li>
+            <li><strong>DevOps Automation:</strong> Docker, Jenkins, GitLab, GitHub Actions, CI/CD Pipelines [cite: 21, 31, 47, 48]</li>
+          </ul>
+        </article>
+
+        <article>
+          <h3>Deep Learning Pipelines & Intelligent Software Applications</h3>
+          <p>
+            Designing and deploying computer vision systems, feature-fusion pipelines, and language model integrations with rigorous accuracy optimization.
+          </p>
+          <ul>
+            <li><strong>AI Core Technologies:</strong> Python, TensorFlow, LangChain, Azure ML Studio, Deep Learning, Neural Networks [cite: 47]</li>
+            <li><strong>Data Operations:</strong> DVC, MLflow, Model Context Protocol, Google Colab GPU Optimization [cite: 47, 48]</li>
+            <li><strong>Applied Framework Implementations:</strong> Automated vulnerability fault-testing scanners integrating Gemini API for dynamic execution[cite: 30].</li>
+          </ul>
+        </article>
+      </section>
+
+      {/* Low Level Software Asset Mapping */}
+      <section aria-label="Native Core Software Products">
+        <h2>Native Core Software Assets</h2>
+        <article>
+          <h3>Pebble Language Compiler</h3>
+          <p>
+            A minimal functional programming language built from scratch in C[cite: 33, 35]. Features a custom portable virtual machine, native compiler binary toolchain (pebblec), immutable lexing paradigms, and completely deterministic stack frame memory management[cite: 33, 35].
+          </p>
+          <a href="https://pebble.krishnakumar.tech/">Pebble Production Domain Website</a> [cite: 33]
+          <blockquote>
+            Engineered absolute type-safety baselines across 20+ functional application metrics, optimizing runtime compilation overhead patterns[cite: 36].
+          </blockquote>
+        </article>
+      </section>
+      <FAQSection />
+    </div>
+
+
     <SceneOverlay>
       {/* Show nav, social rail, and minibubble only after heading reaches top (frame ~50) */}
       <SceneItem start={50} end={10000} className="inset-0 z-50">
@@ -204,5 +264,6 @@ export default function HomePage() {
       {/* Contact removed from scroll (still available in nav modal) */}
       <VisitorCounter />
     </SceneOverlay>
+    </main>
   );
 }
