@@ -17,7 +17,7 @@ export function HeadingSection({ morphStart = 50, morphEnd = 80 }) {
   const padTop = 0; // always 0 so content can touch the top
   const padBottom = 12; // keep slight bottom padding
   const padX = 24 - 10 * t; // px
-  const radius = 20 - 6 * t; // px
+  const radius = 9999; // px
   const headingY = 0 + 6 * t;
   const showFinal = t > 0; // on reaching top (morphStart), switch to final content
 
@@ -31,17 +31,23 @@ export function HeadingSection({ morphStart = 50, morphEnd = 80 }) {
   return (
   <section id="heading" className="inline-block w-auto mx-auto px-0 pt-0 text-center">
       <LiquidGlass
-        className="overflow-visible"
-        style={{ paddingTop: padTop, paddingBottom: padBottom, paddingLeft: padX, paddingRight: padX, borderRadius: radius }}
+    className="overflow-visible w-max mx-auto" // Added w-max to wrap text, mx-auto to keep it centered
+  style={{ 
+    paddingTop: showFinal ? 0 : padTop, 
+    paddingBottom: showFinal ? 0 : padBottom, 
+    paddingLeft: showFinal ? 0 : padX, 
+    paddingRight: showFinal ? 0 : padX, 
+    borderRadius: radius 
+  }}
       >
         <motion.div style={{ scale, transformOrigin: "top center" }}>
           <motion.h1
             style={{ y: headingY, marginTop: 8 * (1 - t), fontSize: dynamicClamp }}
             transition={{ duration: 0.2 }}
-            className="mt-0 font-semibold bg-gradient-to-r from-red-200 via-emerald-200 to-sky-200 bg-clip-text text-transparent whitespace-nowrap drop-shadow-[0_2px_16px_rgba(255,255,255,0.18)]"
+            className={`mt-0 font-semibold bg-gradient-to-r from-red-200 via-emerald-200 to-sky-200 bg-clip-text text-transparent whitespace-nowrap drop-shadow-[0_2px_16px_rgba(255,255,255,0.18)] ${showFinal ? "-mx-32" : ""}`}
           >
             {showFinal
-              ? "Full-Stack Engineer | Intelligent Applications"
+              ? "Accelerating API Performance & Building Intelligent Systems"
               : `${profile.name} • ${profile.role}`}
           </motion.h1>
         </motion.div>

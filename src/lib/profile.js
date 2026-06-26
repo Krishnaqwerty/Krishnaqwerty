@@ -1,6 +1,6 @@
 export const profile = {
-  name: "Krishna Kumar",
-  role: "Software Developer",
+  name: "KRISHNA KUMAR",
+  role: "SOFTWARE ENGINEER",
   email: "meet.kumarkrishna@gmail.com",
   github: "https://github.com/Krishnaqwerty",
   githubUser: "Krishnaqwerty",
